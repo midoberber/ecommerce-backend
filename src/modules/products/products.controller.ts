@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -20,8 +21,8 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@Query('categoryId') categoryId?: string) {
+    return this.productsService.findAll(categoryId);
   }
 
   @Get(':id')

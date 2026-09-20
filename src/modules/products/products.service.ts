@@ -9,8 +9,14 @@ import type { UpdateProductDto } from './dto/update-product.dto.js';
 export class ProductsService {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
-  findAll(): Promise<Product[]> {
-    return this.db.select().from(products).orderBy(desc(products.createdAt));
+  findAll(categoryId?: string): Promise<Product[]> {
+    const query = this.db.select().from(products).$dynamic();
+
+    if (categoryId) {
+      query.where(eq(products.categoryId, categoryId));
+    }
+
+    return query.orderBy(desc(products.createdAt));
   }
 
   async findById(id: string): Promise<Product> {

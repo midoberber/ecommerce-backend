@@ -15,6 +15,13 @@
       "when": 1789646887908,
       "tag": "0001_pink_jigsaw",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789910883235,
+      "tag": "0002_romantic_shard",
+      "breakpoints": true
     }
   ]
 }
