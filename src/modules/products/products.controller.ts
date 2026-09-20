@@ -17,14 +17,15 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { ProductsService } from './products.service.js';
 import { CreateProductDto } from './dto/create-product.dto.js';
 import { UpdateProductDto } from './dto/update-product.dto.js';
+import { ProductQueryDto } from './dto/product-query.dto.js';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  findAll(@Query('categoryId') categoryId?: string) {
-    return this.productsService.findAll(categoryId);
+  findAll(@Query() query: ProductQueryDto) {
+    return this.productsService.findAll(query);
   }
 
   @Get(':id')

@@ -1,7 +1,8 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../db/drizzle.module.js';
-import { cartItems, products } from '../../db/schema/index.js';
+import { asc, sql } from 'drizzle-orm';
+import { cartItems, productImages, products } from '../../db/schema/index.js';
 import type { AddCartItemDto } from './dto/add-cart-item.dto.js';
 
 @Injectable()
@@ -16,12 +17,19 @@ export class CartService {
         productId: products.id,
         name: products.name,
         priceCents: products.priceCents,
-        imageUrl: products.imageUrl,
         stock: products.stock,
+        imageUrl: sql<string | null>`(
+          select ${productImages.url}
+          from ${productImages}
+          where ${productImages.productId} = ${products.id}
+          order by ${productImages.position}
+          limit 1
+        )`,
       })
       .from(cartItems)
       .innerJoin(products, eq(cartItems.productId, products.id))
-      .where(eq(cartItems.userId, userId));
+      .where(eq(cartItems.userId, userId))
+      .orderBy(asc(cartItems.createdAt));
 
     const totalCents = rows.reduce((sum, row) => sum + row.priceCents * row.quantity, 0);
 

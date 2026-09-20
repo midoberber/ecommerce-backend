@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import type { User } from '../../db/schema/index.js';
-import { UsersService } from '../users/users.service.js';
+import { UsersService, toPublicUser } from '../users/users.service.js';
 import type { RegisterDto } from './dto/register.dto.js';
 import type { LoginDto } from './dto/login.dto.js';
 
@@ -53,7 +53,7 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return this.toPublicUser(user);
+    return toPublicUser(user);
   }
 
   private buildAuthResponse(user: User) {
@@ -63,10 +63,6 @@ export class AuthService {
       role: user.role,
     });
 
-    return { accessToken, user: this.toPublicUser(user) };
-  }
-
-  private toPublicUser(user: User) {
-    return { id: user.id, email: user.email, name: user.name, role: user.role };
+    return { accessToken, user: toPublicUser(user) };
   }
 }

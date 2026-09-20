@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 
 export const userRoleEnum = pgEnum('user_role', ['customer', 'admin']);
 
@@ -8,6 +8,10 @@ export const users = pgTable('users', {
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
   role: userRoleEnum('role').notNull().default('customer'),
+  avatarUrl: varchar('avatar_url', { length: 500 }),
+  phone: varchar('phone', { length: 30 }),
+  address: text('address'),
+  city: varchar('city', { length: 120 }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
