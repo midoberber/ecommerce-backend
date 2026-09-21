@@ -11,6 +11,9 @@ import { CartModule } from './modules/cart/cart.module.js';
 import { OrdersModule } from './modules/orders/orders.module.js';
 import { UploadsModule } from './modules/uploads/uploads.module.js';
 import { AddressesModule } from './modules/addresses/addresses.module.js';
+import { ReviewsModule } from './modules/reviews/reviews.module.js';
+import { WishlistModule } from './modules/wishlist/wishlist.module.js';
+import { AdminModule } from './modules/admin/admin.module.js';
 
 @Module({
   imports: [
@@ -24,6 +27,9 @@ import { AddressesModule } from './modules/addresses/addresses.module.js';
     AddressesModule,
     OrdersModule,
     UploadsModule,
+    ReviewsModule,
+    WishlistModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,13 +1,15 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, desc, eq, gte, ilike, inArray, lte, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, ilike, inArray, lte, sql, type SQL } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../db/drizzle.module.js';
-import { productImages, products, type Product } from '../../db/schema/index.js';
+import { productImages, products, reviews, type Product } from '../../db/schema/index.js';
 import type { CreateProductDto } from './dto/create-product.dto.js';
 import type { UpdateProductDto } from './dto/update-product.dto.js';
 import type { ProductQueryDto } from './dto/product-query.dto.js';
 
 export interface ProductWithImages extends Product {
   images: string[];
+  ratingAverage: number;
+  ratingCount: number;
 }
 
 @Injectable()
@@ -43,7 +45,7 @@ export class ProductsService {
       .where(filters.length ? and(...filters) : undefined)
       .orderBy(orderBy);
 
-    return this.attachImages(rows);
+    return this.attachExtras(rows);
   }
 
   async findById(id: string): Promise<ProductWithImages> {
@@ -52,7 +54,7 @@ export class ProductsService {
       throw new NotFoundException('Product not found');
     }
 
-    const [withImages] = await this.attachImages([product]);
+    const [withImages] = await this.attachExtras([product]);
     return withImages;
   }
 
@@ -106,23 +108,37 @@ export class ProductsService {
       .values(urls.map((url, index) => ({ productId, url, position: index })));
   }
 
-  private async attachImages(rows: Product[]): Promise<ProductWithImages[]> {
+  async attachExtras(rows: Product[]): Promise<ProductWithImages[]> {
     if (rows.length === 0) return [];
 
-    const images = await this.db
-      .select()
-      .from(productImages)
-      .where(
-        inArray(
-          productImages.productId,
-          rows.map((row) => row.id),
-        ),
-      )
-      .orderBy(asc(productImages.position));
+    const ids = rows.map((row) => row.id);
 
-    return rows.map((row) => ({
-      ...row,
-      images: images.filter((image) => image.productId === row.id).map((image) => image.url),
-    }));
+    const [images, ratings] = await Promise.all([
+      this.db
+        .select()
+        .from(productImages)
+        .where(inArray(productImages.productId, ids))
+        .orderBy(asc(productImages.position)),
+      this.db
+        .select({
+          productId: reviews.productId,
+          average: sql<string>`avg(${reviews.rating})`,
+          count: sql<string>`count(*)`,
+        })
+        .from(reviews)
+        .where(inArray(reviews.productId, ids))
+        .groupBy(reviews.productId),
+    ]);
+
+    return rows.map((row) => {
+      const rating = ratings.find((item) => item.productId === row.id);
+
+      return {
+        ...row,
+        images: images.filter((image) => image.productId === row.id).map((image) => image.url),
+        ratingAverage: rating ? Math.round(Number(rating.average) * 10) / 10 : 0,
+        ratingCount: rating ? Number(rating.count) : 0,
+      };
+    });
   }
 }

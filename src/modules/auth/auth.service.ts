@@ -45,6 +45,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (user.isBlocked) {
+      throw new UnauthorizedException('تم حظر هذا الحساب، تواصل مع الدعم');
+    }
+
     return this.buildAuthResponse(user);
   }
 
